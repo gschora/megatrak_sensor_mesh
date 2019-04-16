@@ -21,6 +21,12 @@
 #define   MESH_PASSWORD   "megatraksensormeshpass"
 #define   MESH_PORT       5555
 
+#define REV_PIN D2
+
+String NODE_NAME = "node_2";
+
+uint16_t revCounter = 0;
+
 // Prototypes
 void sendMessage(); 
 void receivedCallback(uint32_t from, String & msg);
@@ -47,6 +53,9 @@ void setup() {
 
   pinMode(LED, OUTPUT);
 
+  pinMode(REV_PIN,INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(REV_PIN), revCounting, FALLING);
+
   //mesh.setDebugMsgTypes( ERROR | MESH_STATUS | CONNECTION | SYNC | COMMUNICATION | GENERAL | MSG_TYPES | REMOTE ); // all types on
   //mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION | COMMUNICATION);  // set before init() so that you can see startup messages
   //mesh.setDebugMsgTypes(ERROR | DEBUG | CONNECTION | GENERAL);  // set before init() so that you can see startup messages
@@ -59,6 +68,7 @@ void setup() {
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
   mesh.onNodeDelayReceived(&delayReceivedCallback);
+//   mesh.setName(NODE_NAME);
 
   userScheduler.addTask( taskSendMessage );
   taskSendMessage.enable();
@@ -93,24 +103,28 @@ void loop() {
   digitalWrite(LED, !onFlag);
 }
 
+void revCounting(){
+  ++revCounter;
+}
+
 void sendMessage() {
-  String msg = "Hello from node ";
-  msg += mesh.getNodeId();
-  msg += " myFreeMemory: " + String(ESP.getFreeHeap());
+  String msg = String(revCounter,DEC);
+//   msg += mesh.getNodeId();
+//   msg += " myFreeMemory: " + String(ESP.getFreeHeap());
   mesh.sendBroadcast(msg);
 
-  if (calc_delay) {
-    SimpleList<uint32_t>::iterator node = nodes.begin();
-    while (node != nodes.end()) {
-      mesh.startDelayMeas(*node);
-      node++;
-    }
-    calc_delay = false;
-  }
+//   if (calc_delay) {
+//     SimpleList<uint32_t>::iterator node = nodes.begin();
+//     while (node != nodes.end()) {
+//       mesh.startDelayMeas(*node);
+//       node++;
+//     }
+//     calc_delay = false;
+//   }
 
   Serial.printf("Sending message: %s\n", msg.c_str());
   
-  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 5));  // between 1 and 5 seconds
+  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 2));  // between 1 and 5 seconds
 }
 
 
