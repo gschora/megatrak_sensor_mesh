@@ -84,8 +84,8 @@ void setup() {
   mesh.onNodeDelayReceived(&delayReceivedCallback);
   // // mesh.setName(NODE_NAME);
 
-  userScheduler.addTask( taskSendMessage );
-  taskSendMessage.enable();
+  // userScheduler.addTask( taskSendMessage );
+  // taskSendMessage.enable();
 
   // blinkNoNodes.set(BLINK_PERIOD, (mesh.getNodeList().size() + 1) * 2, []() {
   //     // If on, switch off, else switch on
@@ -122,10 +122,10 @@ void loop() {
   tft.setTextSize(3);
   tft.println(revCounter);
 
-  tft.setCursor(0, 80);
-  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
-  tft.setTextSize(3);
-  tft.println(revCounter2);
+  // tft.setCursor(0, 80);
+  // tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
+  // tft.setTextSize(3);
+  // tft.println(revCounter2);
 }
 
 void revCounting(){
@@ -155,6 +155,11 @@ void sendMessage() {
 
 void receivedCallback(uint32_t from, String & msg) {
   Serial.printf("startHere: Received from %u msg=%s\n", from, msg.c_str());
+  tft.setCursor(0, 80);
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
+  tft.setTextSize(3);
+  tft.println(msg.c_str());
+
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -168,6 +173,10 @@ void newConnectionCallback(uint32_t nodeId) {
 
 void changedConnectionCallback() {
   Serial.printf("Changed connections %s\n", mesh.subConnectionJson().c_str());
+  tft.setCursor(0, 80);
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
+  tft.setTextSize(3);
+  tft.println("          ");
   // Reset blink task
   // onFlag = false;
   // blinkNoNodes.setIterations((mesh.getNodeList().size() + 1) * 2);
