@@ -34,7 +34,9 @@
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 uint16_t revCounter = 0;
-float revCounter2 = 0.0;
+uint16_t revPartCounter = 1;
+unsigned long prevMillis = 0;
+String msg ="0";
 
 // String NODE_NAME = "node_1";
 
@@ -120,7 +122,7 @@ void loop() {
   tft.setCursor(0, 0);
   tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
   tft.setTextSize(3);
-  tft.println(revCounter);
+  tft.println(msg);
 
   // tft.setCursor(0, 80);
   // tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
@@ -129,7 +131,21 @@ void loop() {
 }
 
 void revCounting(){
-  ++revCounter;
+  ++revPartCounter;
+
+    if(revPartCounter >= 11){
+        ++revCounter;
+        unsigned long currentMillis = millis();
+        unsigned long timeUsed = (currentMillis - prevMillis)/100;
+        prevMillis = currentMillis;
+        revPartCounter = 1;
+        // Serial.println(revCounter);
+        // Serial.println("--------");
+        msg = String(revCounter,DEC);
+        msg += "/";
+        msg += String(timeUsed);
+        msg += "       ";
+    }
 }
 
 void sendMessage() {
@@ -173,9 +189,9 @@ void newConnectionCallback(uint32_t nodeId) {
 
 void changedConnectionCallback() {
   Serial.printf("Changed connections %s\n", mesh.subConnectionJson().c_str());
-  tft.setCursor(0, 80);
+  tft.setCursor(0, 90);
   tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
-  tft.setTextSize(3);
+  tft.setTextSize(2);
   tft.println("          ");
   // Reset blink task
   // onFlag = false;

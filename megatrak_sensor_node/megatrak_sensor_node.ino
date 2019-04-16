@@ -23,9 +23,23 @@
 
 #define REV_PIN D2
 
+//FIXME: bei der version ohne 5V-Wandler floated der signal eingang des sensors wenn man ihn anschließt
+//          äussert sich so, dass er anfängt alleine zu zählen (interrupt wird ausgelöst)
+//          funktioniert nur korrekt, wenn ich am usb-port des esp auch eine externe batterie anhänge und
+//          die stromversorgung dort mache, aber auch gleichzeitig die 2. batterie an die schraubklemmen anhänge
+//          (2. batterie war die selbstgedruckte), aber nicht einschalte
+
+//          also an der stromversorgung kanns nicht liegen, weil 2. batterie nicht eingeschalten
+//          vielleicht liegts am wandler? (diode eingebaut, die irgendwas anders macht?)
+
+//          versuchen statt dem 5V-wandler den 3.3V wandler zu verwenden, aber zuerst checken ob der esp auch 
+//          per 3.3V eingang versorgt werden kann
+
 String NODE_NAME = "node_2";
 
 uint16_t revCounter = 0;
+uint16_t revPartCounter = 0;
+unsigned long prevMillis = 0;
 
 // Prototypes
 void sendMessage(); 
@@ -42,7 +56,7 @@ bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 
 void sendMessage() ; // Prototype
-Task taskSendMessage( TASK_SECOND * 1, TASK_FOREVER, &sendMessage ); // start with a one second interval
+// Task taskSendMessage( 500, TASK_FOREVER, &sendMessage ); // start with a one second interval
 
 // Task to blink the number of nodes
 Task blinkNoNodes;
@@ -70,8 +84,8 @@ void setup() {
   mesh.onNodeDelayReceived(&delayReceivedCallback);
 //   mesh.setName(NODE_NAME);
 
-  userScheduler.addTask( taskSendMessage );
-  taskSendMessage.enable();
+//   userScheduler.addTask( taskSendMessage );
+//   taskSendMessage.enable();
 
   blinkNoNodes.set(BLINK_PERIOD, (mesh.getNodeList().size() + 1) * 2, []() {
       // If on, switch off, else switch on
@@ -104,11 +118,35 @@ void loop() {
 }
 
 void revCounting(){
-  ++revCounter;
+    // ++revPartCounter;
+    // Serial.println(revPartCounter);
+
+    // if(revPartCounter >= 10){
+    //     ++revCounter;
+    //     revPartCounter = 0;
+    //     Serial.println(revCounter);
+    //     Serial.println("--------");
+    // }
+  
+    ++revCounter;
+    unsigned long currentMillis = millis();
+    unsigned long timeUsed = (currentMillis - prevMillis)/100;
+    prevMillis = currentMillis;
+
+    String msg = String(revCounter,DEC);
+    msg += "/";
+    msg += String(timeUsed);
+    msg += "       ";
+
+    Serial.println(msg);
+    // Serial.println(timeUsed);
+    // Serial.println("--------");
+  
+  sendMessage(msg);
 }
 
-void sendMessage() {
-  String msg = String(revCounter,DEC);
+void sendMessage(String & msg) {
+//   String msg = String(revCounter,DEC);
 //   msg += mesh.getNodeId();
 //   msg += " myFreeMemory: " + String(ESP.getFreeHeap());
   mesh.sendBroadcast(msg);
@@ -122,9 +160,9 @@ void sendMessage() {
 //     calc_delay = false;
 //   }
 
-  Serial.printf("Sending message: %s\n", msg.c_str());
+//   Serial.printf("Sending message: %s\n", msg.c_str());
   
-  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 2));  // between 1 and 5 seconds
+//   taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 2));  // between 1 and 5 seconds
 }
 
 
