@@ -41,7 +41,7 @@ String msg ="0";
 // String NODE_NAME = "node_1";
 
 // Prototypes
-void sendMessage(); 
+void sendMessage(String & msg); 
 void receivedCallback(uint32_t from, String & msg);
 void newConnectionCallback(uint32_t nodeId);
 void changedConnectionCallback(); 
@@ -54,8 +54,8 @@ painlessMesh  mesh;
 bool calc_delay = false;
 SimpleList<uint32_t> nodes;
 
-void sendMessage() ; // Prototype
-Task taskSendMessage( TASK_SECOND * 1, TASK_FOREVER, &sendMessage ); // start with a one second interval
+void sendMessage(String & msg) ; // Prototype
+//Task taskSendMessage( TASK_SECOND * 1, TASK_FOREVER, &sendMessage ); // start with a one second interval
 
 // Task to blink the number of nodes
 // Task blinkNoNodes;
@@ -145,27 +145,30 @@ void revCounting(){
         msg += "/";
         msg += String(timeUsed);
         msg += "       ";
+        sendMessage(msg);
     }
 }
 
-void sendMessage() {
-  String msg = "Hello from node ";
-  msg += mesh.getNodeId();
-  msg += " myFreeMemory: " + String(ESP.getFreeHeap());
+void sendMessage(String & msg) {
+//  String msg = "Hello from node ";
+//  msg += mesh.getNodeId();
+//  msg += " myFreeMemory: " + String(ESP.getFreeHeap());
   mesh.sendBroadcast(msg);
 
-  if (calc_delay) {
-    SimpleList<uint32_t>::iterator node = nodes.begin();
-    while (node != nodes.end()) {
-      mesh.startDelayMeas(*node);
-      node++;
-    }
-    calc_delay = false;
-  }
+  //FIXME: connection to painlessmesh android app not working?!?
 
-  Serial.printf("Sending message: %s\n", msg.c_str());
-  
-  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 5));  // between 1 and 5 seconds
+//  if (calc_delay) {
+//    SimpleList<uint32_t>::iterator node = nodes.begin();
+//    while (node != nodes.end()) {
+//      mesh.startDelayMeas(*node);
+//      node++;
+//    }
+//    calc_delay = false;
+//  }
+//
+//  Serial.printf("Sending message: %s\n", msg.c_str());
+//  
+//  taskSendMessage.setInterval( random(TASK_SECOND * 1, TASK_SECOND * 5));  // between 1 and 5 seconds
 }
 
 
